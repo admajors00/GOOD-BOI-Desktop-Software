@@ -1,0 +1,474 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0304
+header_name {.h}
+code_name {.cxx}
+decl {\#include <wiringPi.h>} {private local
+}
+
+decl {\#include <wiringSerial.h>} {private local
+}
+
+decl {\#include <pthread.h>} {private local
+}
+
+decl {\#include <chrono>} {private local
+}
+
+decl {\#include "SerialComs.h"} {private local
+}
+
+decl {Fl_Text_Buffer *buff1 = new Fl_Text_Buffer();} {private local
+}
+
+decl {Fl_Text_Buffer *buff2 = new Fl_Text_Buffer();} {private local
+}
+
+decl {Fl_Text_Buffer *serialOutput_Buffer = new Fl_Text_Buffer();} {private local
+}
+
+decl {pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER} {private local
+}
+
+Function {connect_Button_CB(Fl_Widget*, void*)} {open return_type {static void}
+} {
+  code {status_TextDisplay->buffer(buff1);
+
+if(wiringPiSetup()<0){
+	buff1->text("Error opening WP");
+	return;
+		
+  }
+g_FD = serialOpen("/dev/ttyS0", 115200);
+if(g_FD != -1){
+	buff1->text("Connected");
+	connect_button->deactivate();
+}else{
+	buff1->text("No device Connected");
+}
+char string[10];
+sprintf(string, "%d", g_FD);
+errorMsg_TextDisplay->value(string);} {}
+}
+
+Function {start_Button_CB(Fl_Widget*, void*)} {open return_type {static void}
+} {
+  code {status_TextDisplay->buffer(buff1);
+  CHECK_FOR_SERIAL_MESSAGES = true;
+  UPDATE_SERIAL_MSG_WINDOW  = true;
+  UPDATE_DATA_DISPLAY = !UPDATE_SERIAL_MSG_WINDOW;
+  buff1->text("Started");} {}
+}
+
+Function {stop_Button_CB(Fl_Widget*, void*)} {open return_type {static void}
+} {
+  code {status_TextDisplay->buffer(buff1);
+  
+  buff1->text("Stopped");
+  
+  CHECK_FOR_SERIAL_MESSAGES = false;
+  UPDATE_DATA_DISPLAY = false;
+  UPDATE_SERIAL_MSG_WINDOW = false;
+  clearBuffer();} {}
+}
+
+Function {send_Button_CB(Fl_Widget*, void*)} {open return_type {static void}
+} {
+  code {serialPrintf(g_FD,"<");
+serialPrintf(g_FD,commsInput->value());
+serialPrintf(g_FD,">");} {}
+}
+
+Function {controlButtons_CB(Fl_Widget*widget, void* v, int buttonNum)} {open selected return_type {static void}
+} {
+  code {switch(buttonNum){
+  	case 1:
+  		serialPrintf(g_FD,"<stand>");
+      break;
+    case 2:
+      serialPrintf(g_FD,"<sit>");
+      break;
+    case 3:
+      serialPrintf(g_FD,"<layDown>");
+      break;
+    case 4:
+      serialPrintf(g_FD,"<Walk>");
+      break;
+    case 5:
+      serialPrintf(g_FD, "<SETPARAM,SPEED," + std::to_string(widget->input) + ">");
+      break;
+  }} {}
+}
+
+Function {OpenLoopOffset_CB(Fl_Widget* widget,int num)} {open return_type {static void}
+} {
+  code {switch(num){
+  	case 1:
+  		serialPrintf(g_FD,"<stand>");
+
+  }} {}
+}
+
+Function {updateSerialMsgWindowThread(void*)} {open return_type {void*}
+} {
+  code {Fl::lock(); 
+commsOutput_Output->buffer(serialOutput_Buffer);
+commsOutput_Output->wrap_mode(3, 1);
+Fl::unlock();
+Fl::awake();
+int i = 0;
+std::string temp;
+while(1){
+  	if(comms_Group->visible() || control_Group->visible()){
+  		UPDATE_SERIAL_MSG_WINDOW = true;
+  	}else{
+  		UPDATE_SERIAL_MSG_WINDOW = false;
+  	}
+	if(UPDATE_SERIAL_MSG_WINDOW){	
+        	if(NEW_DATA_FROM_BOARD){
+        		i++;
+        		temp = std::to_string(i) + ":\\t";
+        		Fl::lock();
+                        commsOutput_Output->insert(temp.c_str());
+              		commsOutput_Output->scroll(commsOutput_Output->insert_position(), 0);
+              		commsOutput_Output->insert(MSG.c_str());
+              		commsOutput_Output->insert("\\n");
+              		Fl::unlock();
+        		Fl::awake();	
+        		MSG = "";
+        		NEW_DATA_FROM_BOARD = false;
+        	}
+        }
+}} {}
+}
+
+Function {updateDataDisplayThread(void*)} {open return_type {void*}
+} {
+  code {std::string temp;
+    std::string::size_type sz;
+    int newString = 1;
+    int numIMUData = 0;
+    bool readyForNext = true;//not waiting for response
+    std::chrono::time_point<std::chrono::system_clock> start, current, end;
+     std::chrono::duration<double> elapsed_seconds, refreshRate;
+    start = std::chrono::system_clock::now();
+    while(1){
+    	if(!displayData_Group->visible()){
+    		UPDATE_DATA_DISPLAY = false;
+        readyForNext = true;	
+    	}else{
+    		UPDATE_DATA_DISPLAY = true;	
+    	}
+        	if(UPDATE_DATA_DISPLAY ){//if update display is turned off while waiting for resposne  we will uave a problem
+              //std::cout<<"debug 0\\n";
+              current = std::chrono::system_clock::now();
+              elapsed_seconds = current-start;
+              if(elapsed_seconds.count()>=.05 && readyForNext){
+                readyForNext = false;
+                serialPrintf(g_FD,"<");
+                serialPrintf(g_FD,"imuDataRqst");
+                serialPrintf(g_FD,">");
+                start = std::chrono::system_clock::now();
+                numIMUData++;
+              }	
+              //std::cout<<"debug 1\\n";
+              if(NEW_DATA_FROM_BOARD){
+                std::string imuData[6];
+                numIMUData = 0;
+                temp = "";
+                //std::cout<<"debug 2\\n";
+                std::cout<<"MSG: " << MSG;
+                //std::cout<<"debug 3\\n";
+                for(int i=0;i< (int)MSG.size(); i++){
+                    if(numIMUData>=6){
+                      
+                      break;		
+                    }
+                    if(newString){
+                      temp[0] = MSG[i];
+                      newString =0;
+                    } 
+                    if(MSG[i] == ',' && !newString){
+                      newString = 1;
+                      
+                      imuData[numIMUData] = temp;
+                      numIMUData++;
+                      temp = "";
+                      
+                    }else{
+                      temp += MSG[i];
+                    }
+                    
+                }
+                //std::cout<<"debug 1\\n";
+                //std::cout<<imuData<<std::endl;
+                Fl::lock();
+                xAcc_Value->value(std::stod(imuData[0])); 
+                yAcc_Value->value(std::stod(imuData[1])); 
+                zAcc_Value->value(std::stod(imuData[2])); 
+                xGyro_Value->value(std::stod(imuData[3])); 
+                yGyro_Value->value(std::stod(imuData[4])); 
+                zGyro_Value->value(std::stod(imuData[5])); 
+                Fl::unlock();
+                Fl::awake();	
+                MSG = "";
+                NEW_DATA_FROM_BOARD = false;
+                readyForNext = true;
+                end = std::chrono::system_clock::now();
+                refreshRate = start-end;
+                //std::cout<< "Refresh period: " << refreshRate.count() <<std::endl;
+              }
+          }
+      }} {}
+}
+
+Function {} {open
+} {
+  Fl_Window {} {
+    label {G.O.O.D. B.O.I.} open
+    xywh {899 517 945 445} type Double box UP_BOX color 21 hide
+  } {
+    Fl_Tabs {} {open
+      xywh {0 30 745 375} box GLEAM_ROUND_DOWN_BOX color 19 selection_color 47
+    } {
+      Fl_Group control_Group {
+        label Control open
+        xywh {0 60 740 345}
+      } {
+        Fl_Button downArrow_Button {
+          xywh {630 175 40 40}
+        }
+        Fl_Button leftArrow_Button {
+          xywh {670 135 40 40}
+        }
+        Fl_Button rightArrow_Button {
+          xywh {590 135 40 40}
+        }
+        Fl_Button upArrow_Button {
+          xywh {630 95 40 40}
+        }
+        Fl_Group {} {open
+          xywh {20 100 70 120}
+        } {}
+        Fl_Button stand_Button {
+          label Stand
+          user_data 1
+          callback controlButtons_CB
+          xywh {20 105 70 20}
+        }
+        Fl_Button sit_Button {
+          label Sit
+          user_data 2
+          callback controlButtons_CB
+          xywh {20 135 70 20}
+        }
+        Fl_Button layDown_Button {
+          label {Lay Down}
+          user_data 3
+          callback controlButtons_CB
+          xywh {20 165 70 20}
+        }
+        Fl_Button walk_Button {
+          label Walk
+          user_data 4
+          callback controlButtons_CB
+          xywh {20 195 70 20}
+        }
+        Fl_Value_Input stepDist_Valuator {
+          label {Step Dist:}
+          user_data 6
+          callback controlButtons_CB
+          xywh {225 135 50 25}
+        }
+        Fl_Value_Input walkSpeed_Valuator {
+          label {Walk Speed: }
+          user_data 5
+          callback controlButtons_CB
+          xywh {225 105 50 25}
+        }
+        Fl_Value_Input walkHeight_Valuator {
+          label {Walk Height: }
+          user_data 7
+          callback controlButtons_CB
+          xywh {225 165 50 25}
+        }
+        Fl_Value_Input walkDir_Valuator {
+          label {Walk Direction: }
+          user_data 8
+          callback controlButtons_CB
+          xywh {225 195 50 25}
+        }
+        Fl_Value_Input openLoopOffset1X_Valuator {
+          label {X: }
+          user_data 1
+          callback OpenLoopOffset_CB
+          xywh {340 100 25 25}
+        }
+        Fl_Value_Input openLoopOffset1Y_Valuator {
+          label {Y: }
+          user_data 2
+          callback OpenLoopOffset_CB
+          xywh {387 100 25 25}
+        }
+        Fl_Value_Input openLoopOffset2X_Valuator {
+          label {X: }
+          user_data 3
+          callback OpenLoopOffset_CB
+          xywh {475 100 25 25}
+        }
+        Fl_Value_Input openLoopOffset2Y_Valuator {
+          label {Y: }
+          user_data 4
+          callback OpenLoopOffset_CB
+          xywh {522 100 25 25}
+        }
+        Fl_Value_Input openLoopOffset3X_Valuator {
+          label {X: }
+          user_data 5
+          callback OpenLoopOffset_CB
+          xywh {340 185 25 25}
+        }
+        Fl_Value_Input openLoopOffset3Y_Valuator {
+          label {Y: }
+          user_data 6
+          callback OpenLoopOffset_CB
+          xywh {387 185 25 25}
+        }
+        Fl_Value_Input openLoopOffset4X_Valuator {
+          label {X: }
+          user_data 7
+          callback OpenLoopOffset_CB
+          xywh {475 185 25 25}
+        }
+        Fl_Value_Input openLoopOffset4Y_Valuator {
+          label {Y: }
+          user_data 8
+          callback OpenLoopOffset_CB
+          xywh {522 185 25 25}
+        }
+      }
+      Fl_Group logData_Group {
+        label {Log Data} open
+        xywh {0 60 735 335} hide
+      } {
+        Fl_File_Input {} {
+          label {Folder Path:}
+          xywh {93 82 380 28}
+        }
+        Fl_Tabs {} {open
+          xywh {10 230 705 150} box GLEAM_THIN_DOWN_BOX
+        } {
+          Fl_Group {} {
+            label CSM open
+            xywh {10 280 705 100} resizable
+          } {}
+          Fl_Group {} {
+            label IMU open
+            xywh {10 260 705 115} hide
+          } {}
+        }
+        Fl_Input {} {
+          label {FIle Name:}
+          xywh {90 115 385 25}
+        }
+      }
+      Fl_Group comms_Group {
+        label Comms open
+        xywh {10 60 730 335} align 5 hide
+      } {
+        Fl_Input commsInput {
+          label {input:}
+          xywh {70 345 565 30}
+        }
+        Fl_Button send_Button {
+          label Send
+          callback send_Button_CB
+          xywh {655 350 50 20}
+        }
+        Fl_Text_Display commsOutput_Output {
+          label {Output: }
+          xywh {75 90 630 235} color 55 selection_color 55 align 7
+        }
+      }
+      Fl_Group displayData_Group {
+        label {Display Data} open
+        xywh {0 65 740 330} hide
+      } {
+        Fl_Value_Output xAcc_Value {
+          label {X Acc:}
+          xywh {70 90 65 25}
+        }
+        Fl_Value_Output yAcc_Value {
+          label {Y Acc:}
+          xywh {70 121 65 25}
+        }
+        Fl_Value_Output zAcc_Value {
+          label {Z Acc:}
+          xywh {70 152 65 25}
+        }
+        Fl_Value_Output xGyro_Value {
+          label {X Gyro:}
+          xywh {70 183 65 25}
+        }
+        Fl_Value_Output yGyro_Value {
+          label {Y Gyro:}
+          xywh {70 214 65 25}
+        }
+        Fl_Value_Output zGyro_Value {
+          label {Z Gyro:}
+          xywh {70 245 65 25}
+        }
+      }
+    }
+    Fl_Group {} {open
+      xywh {0 402 740 41} box GLEAM_THIN_DOWN_BOX color 47
+    } {
+      Fl_Output errorMsg_TextDisplay {
+        label {Error Messages:}
+        xywh {127 411 605 25} textcolor 81
+      }
+    }
+    Fl_Group {} {
+      label Connection open
+      xywh {740 60 205 385} box GLEAM_DOWN_BOX selection_color 23
+    } {
+      Fl_Button connect_button {
+        label Connect
+        callback connect_Button_CB
+        xywh {750 140 70 20}
+      }
+      Fl_Text_Display status_TextDisplay {
+        label Status
+        xywh {795 95 130 30} color 63 selection_color 9 align 4
+      }
+      Fl_Button start_Button {
+        label Start
+        callback start_Button_CB
+        xywh {835 140 70 20}
+      }
+      Fl_Button stop_Button {
+        label Stop
+        user_data 2
+        callback stop_Button_CB
+        xywh {835 160 70 20}
+      }
+      Fl_Input baudRate_Input {
+        label {Baud: }
+        xywh {800 190 90 25}
+      }
+    }
+  }
+  code {Fl::lock();
+
+int rc1;
+pthread_t thread1, thread2, thread3;
+
+if((rc1=pthread_create(&thread1, NULL, serialMsgThread,(void*)1))){
+	printf("Thread creation failed: %d\\n", rc1);
+}
+if((rc1=pthread_create(&thread2, NULL, updateSerialMsgWindowThread,(void*)1))){
+  	printf("Thread creation failed: %d\\n", rc1);
+  }
+  if((rc1=pthread_create(&thread3, NULL, updateDataDisplayThread,(void*)1))){
+  	printf("Thread creation failed: %d\\n", rc1);
+  }} {}
+}
