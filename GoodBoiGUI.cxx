@@ -59,12 +59,18 @@ void send_Button_CB(Fl_Widget*, void*) {
 
 void controlButtons_CB(Fl_Widget*,  int buttonNum) {
   std::string reply;
+    PSC_CMD cmd;
     switch(buttonNum){
         	case 1:
         		serialPrintf(g_FD,"<stand>");
             break;
           case 2:
-            serialPrintf(g_FD,"<sit>");
+            //serialPrintf(g_FD,"<sit>");
+            cmd.action = GETPARAM;
+            cmd.param = SPEED;
+            cmd.numVals = 0;
+            PSC_SendCommand(cmd);
+
             break;
           case 3:
             serialPrintf(g_FD,"<layDown>");
@@ -75,22 +81,25 @@ void controlButtons_CB(Fl_Widget*,  int buttonNum) {
           case 5:
             reply = "<SETPARAM,SPEED,";
             reply.append(walkSpeed_Valuator->input.value());
-            
+            reply.append( ";>");
             break;
           case 6:
             reply = "<SETPARAM,DIST,";
-            reply.append(stepDist_Valuator->input.value());          
+            reply.append(stepDist_Valuator->input.value());     
+            reply.append( ";>");     
             break;
           case 7:
             reply = "<SETPARAM,HEIGHT,";
-            reply.append(walkHeight_Valuator->input.value());          
+            reply.append(walkHeight_Valuator->input.value());
+            reply.append( ";>");          
             break;
           case 8:
             reply = "<SETPARAM,DIR,";
-            reply.append(walkDir_Valuator->input.value());          
+            reply.append(walkDir_Valuator->input.value());   
+            reply.append( ";>");       
             break;
         }
-        reply.append( ";>");
+        
         serialPrintf(g_FD, reply.data());
 }
 
@@ -478,17 +487,20 @@ int main(int argc, char **argv) {
   Fl::lock();
   
   int rc1;
-  pthread_t thread1, thread2, thread3;
+  pthread_t thread1, thread2, thread3, thread4;
   
   if((rc1=pthread_create(&thread1, NULL, serialMsgThread,(void*)1))){
   	printf("Thread creation failed: %d\n", rc1);
   }
   if((rc1=pthread_create(&thread2, NULL, updateSerialMsgWindowThread,(void*)1))){
-    	printf("Thread creation failed: %d\n", rc1);
-    }
-    if((rc1=pthread_create(&thread3, NULL, updateDataDisplayThread,(void*)1))){
-    	printf("Thread creation failed: %d\n", rc1);
-    }
+    printf("Thread creation failed: %d\n", rc1);
+  }
+  if((rc1=pthread_create(&thread3, NULL, updateDataDisplayThread,(void*)1))){
+    printf("Thread creation failed: %d\n", rc1);
+  }
+  if((rc1=pthread_create(&thread4, NULL, PSC_InterpretCommandThread,(void*)1))){
+    printf("Thread creation failed: %d\n", rc1);
+  }
   w->show(argc, argv);
   return Fl::run();
 }
