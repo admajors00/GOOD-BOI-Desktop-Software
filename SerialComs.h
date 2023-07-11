@@ -9,6 +9,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <poll.h>
+#include <cstring>
 #ifndef SerialComs_h
 #define SerialComs_h
 
@@ -39,6 +40,8 @@ extern int  PSC_BUFFER_INDEX;
 extern int PSC_MSG_LEN;
 extern volatile int PSC_NEW_DATA_FROM_BOARD;
 
+extern volatile bool PSC_g_startGetAllParameters;
+extern int PSC_g_GetAllParametersParamNum;
 //the following section defines enums and equivelent strings
 #define FOREACH_ACTION(ACTION) \
         ACTION(GETPARAM)   \
@@ -85,7 +88,7 @@ typedef struct{
 	float numVals;
 }PSC_CMD;
 
-
+extern PSC_CMD PSC_g_inputCMD;
 extern char PORTA[13];
 extern char PORTB[14];
 
@@ -120,15 +123,15 @@ void clearBuffer();
 void checkBuffer(); //checks if there is a complete message in the buffer if
 
 void *serialMsgThread(void * threadID);//continously checks for messages
-void *PSC_InterpretCommandThread(void *threadID);
+//void *PSC_InterpretCommandThread(void *threadID);
 
 
 void PSC_SendCommand(PSC_CMD cmd);
 int PSC_ProcessCommand(PSC_CMD cmd);
-int PSC_InterpretCommand(char msg[], int size, PSC_CMD * cmd);
+int PSC_InterpretCommand(const char msg[], int size, PSC_CMD * cmd);
 //void PSC_checkSerial(int fd);
 
-int PSC_FindNextToken(char str[], char token[], int start, int len);
+int PSC_FindNextToken(const char str[], char token[], int start, int len);
 int PSC_EvalParam(char str[],unsigned  int len);
 int PSC_EvalAction(char str[],unsigned  int len);
 

@@ -7,9 +7,10 @@ void connect_Button_CB(Fl_Widget*, void*);
 void start_Button_CB(Fl_Widget*, void*);
 void stop_Button_CB(Fl_Widget*, void*);
 void send_Button_CB(Fl_Widget*, void*);
-void controlButtons_CB(Fl_Widget*,  int buttonNum);
+void controlButtons_CB(Fl_Widget*, int buttonNum);
 void OpenLoopOffset_CB(Fl_Widget*,int num);
 void* updateSerialMsgWindowThread(void*);
+void * PSC_InterpretCommandThread(void *threadID);
 void* updateDataDisplayThread(void*);
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Tabs.H>
@@ -37,6 +38,7 @@ extern Fl_Value_Input *openLoopOffset3X_Valuator;
 extern Fl_Value_Input *openLoopOffset3Y_Valuator;
 extern Fl_Value_Input *openLoopOffset4X_Valuator;
 extern Fl_Value_Input *openLoopOffset4Y_Valuator;
+extern Fl_Button *getParams_Button;
 extern Fl_Group *logData_Group;
 #include <FL/Fl_File_Input.H>
 #include <FL/Fl_Input.H>

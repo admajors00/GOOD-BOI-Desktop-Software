@@ -11,6 +11,9 @@ decl {\#include <wiringSerial.h>} {private local
 decl {\#include <pthread.h>} {private local
 }
 
+decl {\#include <string>} {selected private local
+}
+
 decl {\#include <chrono>} {private local
 }
 
@@ -78,34 +81,80 @@ serialPrintf(g_FD,commsInput->value());
 serialPrintf(g_FD,">");} {}
 }
 
-Function {controlButtons_CB(Fl_Widget*widget, void* v, int buttonNum)} {open selected return_type {static void}
+Function {controlButtons_CB(Fl_Widget*, int buttonNum)} {open return_type {static void}
 } {
-  code {switch(buttonNum){
-  	case 1:
-  		serialPrintf(g_FD,"<stand>");
-      break;
-    case 2:
-      serialPrintf(g_FD,"<sit>");
-      break;
-    case 3:
-      serialPrintf(g_FD,"<layDown>");
-      break;
-    case 4:
-      serialPrintf(g_FD,"<Walk>");
-      break;
-    case 5:
-      serialPrintf(g_FD, "<SETPARAM,SPEED," + std::to_string(widget->input) + ">");
-      break;
-  }} {}
+  code {std::string reply;
+    PSC_CMD cmd;
+    switch(buttonNum){
+        	case 1:
+        		serialPrintf(g_FD,"<stand>");
+            break;
+          case 2:
+            serialPrintf(g_FD,"<sit>");
+            
+            break;
+          case 3:
+            serialPrintf(g_FD,"<layDown>");
+            break;
+          case 4:
+            serialPrintf(g_FD,"<Walk>");
+            break;
+          case 5:
+            reply = "<SETPARAM,SPEED,";
+            reply.append(walkSpeed_Valuator->input.value());
+            reply.append( ";>");
+            break;
+          case 6:
+            reply = "<SETPARAM,DIST,";
+            reply.append(stepDist_Valuator->input.value());     
+            reply.append( ";>");     
+            break;
+          case 7:
+            reply = "<SETPARAM,HEIGHT,";
+            reply.append(walkHeight_Valuator->input.value());
+            reply.append( ";>");          
+            break;
+          case 8:
+            reply = "<SETPARAM,DIR,";
+            reply.append(walkDir_Valuator->input.value());   
+            reply.append( ";>");       
+            break;
+        }
+        
+        serialPrintf(g_FD, reply.data());} {}
 }
 
-Function {OpenLoopOffset_CB(Fl_Widget* widget,int num)} {open return_type {static void}
+Function {OpenLoopOffset_CB(Fl_Widget*,int num)} {open return_type {static void}
 } {
-  code {switch(num){
-  	case 1:
-  		serialPrintf(g_FD,"<stand>");
-
-  }} {}
+  code {std::string reply;
+    switch(num){
+      	case 1:
+      		reply = "<SETPARAM,OPLO,1,";
+          reply.append(openLoopOffset1X_Valuator->input.value()); 
+          reply += ",";
+          reply.append(openLoopOffset1Y_Valuator->input.value()); 
+          break;
+        case 2:
+      		reply = "<SETPARAM,OPLO,2,";
+          reply.append(openLoopOffset2X_Valuator->input.value()); 
+          reply += ",";
+          reply.append(openLoopOffset2Y_Valuator->input.value()); 
+          break;
+        case 3:
+      		reply = "<SETPARAM,OPLO,3,";
+          reply.append(openLoopOffset3X_Valuator->input.value()); 
+          reply += ",";
+          reply.append(openLoopOffset3Y_Valuator->input.value()); 
+          break;
+        case 4:
+      		reply = "<SETPARAM,OPLO,4,";
+          reply.append(openLoopOffset4X_Valuator->input.value()); 
+          reply += ",";
+          reply.append(openLoopOffset4Y_Valuator->input.value()); 
+          break;
+      }
+      reply.append( ";>");
+      serialPrintf(g_FD, reply.data());} {}
 }
 
 Function {updateSerialMsgWindowThread(void*)} {open return_type {void*}
@@ -139,6 +188,95 @@ while(1){
         	}
         }
 }} {}
+}
+
+Function {PSC_InterpretCommandThread(void *threadID)} {open return_type {void *}
+} {
+  code {int getOrSet = 0; // 0 for get 1 for set;
+  int messageLen = 0;
+  char response[20];
+	while(1){
+		if(PSC_g_newCmdFromBoard){
+      std::cout<<"Debug 1\\n";
+			if(PSC_g_inputCMD.action == SETPARAM){
+				//messageLen = sprintf(response, "<%s set>",PARAM_STRING[cmd.param]);
+				// PSC_SendToOutputBuffer( response, messageLen);
+				getOrSet = 1;
+			}
+      Fl::lock();
+			switch(PSC_g_inputCMD.param){
+				case SPEED:
+          std::cout<<"Debug 2\\n";
+					if(getOrSet){walkSpeed_Valuator->input.value(std::to_string( (int)PSC_g_inputCMD.vals[0]).data());}
+					else{
+						// messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkMaxTime);
+						// PSC_SendToOutputBuffer( response, messageLen);
+					}
+					break;
+				case DIST:
+					if(getOrSet){stepDist_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
+					else{
+						// messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkDistance);
+						// PSC_SendToOutputBuffer(response, messageLen);
+					}
+					break;
+				case HEIGHT:
+					if(getOrSet){walkHeight_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
+					else{
+						// messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkHeight);
+						// PSC_SendToOutputBuffer( response, messageLen);
+					}
+					break;
+				case DIR:
+					if(getOrSet){walkDir_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
+					else{
+						// messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkDirection);
+						// PSC_SendToOutputBuffer( response, messageLen);
+					}
+					break;
+				case OPLO:
+					if(getOrSet){
+						
+						openLoopOffset1X_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[1]).data());
+						openLoopOffset1Y_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[2]).data());
+
+					}else{
+						// messageLen = sprintf(response, "<%0.2f,%0.2f;>",LEG_CONT_g_walkOpenLoopOffsets[(int)cmd.vals[0]].x, LEG_CONT_g_walkOpenLoopOffsets[(int)cmd.vals[0]].y);
+						// PSC_SendToOutputBuffer( response, messageLen);
+					}
+					break;
+				case STOF:
+					if(getOrSet){
+						// LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].x = cmd.vals[1];
+						// LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].y = cmd.vals[2];
+					}else{
+						// messageLen = sprintf(response, "<%0.2f,%0.2f;>",LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].x, LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].y);
+						// PSC_SendToOutputBuffer( response, messageLen);
+					}
+					break;
+				case IMUDATA:
+					if(!getOrSet){
+						// messageLen = sprintf(response, "<%0.2f,%0.2f,%0.2f,%0.2f,%0.2f,%0.2f;>",
+						// 						ADI_IMU_burstReadBufScaled[2],
+						// 						ADI_IMU_burstReadBufScaled[3],
+						// 						ADI_IMU_burstReadBufScaled[4],
+						// 						ADI_IMU_burstReadBufScaled[5],
+						// 						ADI_IMU_burstReadBufScaled[6],
+						// 						ADI_IMU_burstReadBufScaled[7]);
+						// PSC_SendToOutputBuffer( response, messageLen);
+					}
+					break;
+				default:
+          break;
+					
+			}
+			Fl::unlock();
+      Fl::awake();
+      PSC_g_newCmdFromBoard = false;
+		}
+    
+	}
+	return NULL;} {}
 }
 
 Function {updateDataDisplayThread(void*)} {open return_type {void*}
@@ -225,7 +363,7 @@ Function {} {open
 } {
   Fl_Window {} {
     label {G.O.O.D. B.O.I.} open
-    xywh {899 517 945 445} type Double box UP_BOX color 21 hide
+    xywh {65 358 945 445} type Double box UP_BOX color 21 visible
   } {
     Fl_Tabs {} {open
       xywh {0 30 745 375} box GLEAM_ROUND_DOWN_BOX color 19 selection_color 47
@@ -246,7 +384,7 @@ Function {} {open
         Fl_Button upArrow_Button {
           xywh {630 95 40 40}
         }
-        Fl_Group {} {open
+        Fl_Group {} {
           xywh {20 100 70 120}
         } {}
         Fl_Button stand_Button {
@@ -301,49 +439,55 @@ Function {} {open
           label {X: }
           user_data 1
           callback OpenLoopOffset_CB
-          xywh {340 100 25 25}
+          xywh {340 100 25 25} when 8
         }
         Fl_Value_Input openLoopOffset1Y_Valuator {
           label {Y: }
-          user_data 2
+          user_data 1
           callback OpenLoopOffset_CB
-          xywh {387 100 25 25}
+          xywh {387 100 25 25} when 8
         }
         Fl_Value_Input openLoopOffset2X_Valuator {
           label {X: }
-          user_data 3
+          user_data 2
           callback OpenLoopOffset_CB
-          xywh {475 100 25 25}
+          xywh {475 100 25 25} when 8
         }
         Fl_Value_Input openLoopOffset2Y_Valuator {
           label {Y: }
-          user_data 4
+          user_data 2
           callback OpenLoopOffset_CB
-          xywh {522 100 25 25}
+          xywh {522 100 25 25} when 8
         }
         Fl_Value_Input openLoopOffset3X_Valuator {
           label {X: }
-          user_data 5
+          user_data 3
           callback OpenLoopOffset_CB
-          xywh {340 185 25 25}
+          xywh {340 185 25 25} when 8
         }
         Fl_Value_Input openLoopOffset3Y_Valuator {
           label {Y: }
-          user_data 6
+          user_data 3
           callback OpenLoopOffset_CB
-          xywh {387 185 25 25}
+          xywh {387 185 25 25} when 8
         }
         Fl_Value_Input openLoopOffset4X_Valuator {
           label {X: }
-          user_data 7
+          user_data 4
           callback OpenLoopOffset_CB
-          xywh {475 185 25 25}
+          xywh {475 185 25 25} when 8
         }
         Fl_Value_Input openLoopOffset4Y_Valuator {
           label {Y: }
-          user_data 8
+          user_data 4
           callback OpenLoopOffset_CB
-          xywh {522 185 25 25}
+          xywh {522 185 25 25} when 8
+        }
+        Fl_Button getParams_Button {
+          label {Get Params}
+          user_data 9
+          callback controlButtons_CB
+          xywh {15 245 70 20}
         }
       }
       Fl_Group logData_Group {
@@ -458,17 +602,20 @@ Function {} {open
     }
   }
   code {Fl::lock();
-
-int rc1;
-pthread_t thread1, thread2, thread3;
-
-if((rc1=pthread_create(&thread1, NULL, serialMsgThread,(void*)1))){
-	printf("Thread creation failed: %d\\n", rc1);
-}
-if((rc1=pthread_create(&thread2, NULL, updateSerialMsgWindowThread,(void*)1))){
+  
+  int rc1;
+  pthread_t thread1, thread2, thread3, thread4;
+  
+  if((rc1=pthread_create(&thread1, NULL, serialMsgThread,(void*)1))){
   	printf("Thread creation failed: %d\\n", rc1);
   }
+  if((rc1=pthread_create(&thread2, NULL, updateSerialMsgWindowThread,(void*)1))){
+    printf("Thread creation failed: %d\\n", rc1);
+  }
   if((rc1=pthread_create(&thread3, NULL, updateDataDisplayThread,(void*)1))){
-  	printf("Thread creation failed: %d\\n", rc1);
+    printf("Thread creation failed: %d\\n", rc1);
+  }
+  if((rc1=pthread_create(&thread4, NULL, PSC_InterpretCommandThread,(void*)1))){
+    printf("Thread creation failed: %d\\n", rc1);
   }} {}
 }
