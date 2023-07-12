@@ -179,6 +179,7 @@ void * PSC_InterpretCommandThread(void *threadID) {
   char response[20];
   int expectedParamNum=0;
   bool getOPLO = 0;
+  int oploNum = 0;
   PSC_CMD cmd;
   cmd.action = GETPARAM;
   cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
@@ -191,26 +192,7 @@ void * PSC_InterpretCommandThread(void *threadID) {
         // PSC_SendToOutputBuffer( response, messageLen);
         getOrSet = 1;
       }
-      if(PSC_g_startGetAllParameters){
-        if(expectedParamNum != (int)PSC_g_inputCMD.param){
-          //ask for it again
-          PSC_SendCommand(cmd);
-        }else{
-          expectedParamNum +=1;
-          // if(expectedParamNum == (int)OPLO){
-          //   expectedParamNum
-          // }
-          cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
-          PSC_SendCommand(cmd);
-          
-          if(expectedParamNum +1>= (int)NUM_PARAMS -5){
-            expectedParamNum = 0;
-            PSC_g_startGetAllParameters = 0;
-            control_Group->activate();
-          }
-        }       
-        
-      }
+      
       Fl::lock();
       switch(PSC_g_inputCMD.param){
         case SPEED:
@@ -276,10 +258,46 @@ void * PSC_InterpretCommandThread(void *threadID) {
           break;
         default:
           break;
-          
       }
       Fl::unlock();
       Fl::awake();
+
+      if(PSC_g_startGetAllParameters){
+        if((int)PSC_g_inputCMD.param != expectedParamNum){
+          //ask for it again
+          PSC_SendCommand(cmd);
+        }else if(getOPLO ){  //oplo is open loop ffset and there is one for each leg so we must ask this for param 4 times
+          if(oploNum > 4){
+            getOPLO = false;
+            expectedParamNum +=1;
+            cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
+            PSC_SendCommand(cmd);
+          }           
+          cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
+          cmd.numVals = 1;
+          cmd.vals[0] = oploNum;
+          PSC_SendCommand(cmd);
+          oploNum++;
+          
+        }else if(expectedParamNum == (int)OPLO){
+          getOPLO = true;
+          cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
+          cmd.numVals = 1;
+          cmd.vals[0] = oploNum;
+          PSC_SendCommand(cmd);
+          oploNum++;
+        }else{
+          expectedParamNum +=1;
+          cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
+          PSC_SendCommand(cmd);
+          
+          if(expectedParamNum +1>= (int)NUM_PARAMS -5){
+            expectedParamNum = 0;
+            PSC_g_startGetAllParameters = 0;
+            control_Group->activate();
+          }
+        }          
+      }
       PSC_g_newCmdFromBoard = false;
     } 
   }
