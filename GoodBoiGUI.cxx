@@ -59,12 +59,15 @@ void send_Button_CB(Fl_Widget*, void*) {
 void controlButtons_CB(Fl_Widget*, int buttonNum) {
   std::string reply;
   PSC_CMD cmd;
+  cmd.action = GETPARAM;
+  cmd.numVals = 0;
   switch(buttonNum){
     case 1:
       serialPrintf(g_FD,"<stand>");
       break;
     case 2:
-      serialPrintf(g_FD,"<sit>");
+      PSC_g_startGetAllParameters = 0;
+            control_Group->activate();
       
       break;
     case 3:
@@ -94,8 +97,13 @@ void controlButtons_CB(Fl_Widget*, int buttonNum) {
       reply.append( ";>");       
       break;
     case 9:
-      control_Group->deactivate();
-      PSC_g_startGetAllParameters = true;
+      if(CHECK_FOR_SERIAL_MESSAGES){
+        cmd.param = SPEED;
+        control_Group->deactivate();
+        PSC_SendCommand(cmd);
+        PSC_g_startGetAllParameters = true;
+      }
+
   }
   
   serialPrintf(g_FD, reply.data());
@@ -170,6 +178,7 @@ void * PSC_InterpretCommandThread(void *threadID) {
   int messageLen = 0;
   char response[20];
   int expectedParamNum=0;
+  bool getOPLO = 0;
   PSC_CMD cmd;
   cmd.action = GETPARAM;
   cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
@@ -187,10 +196,15 @@ void * PSC_InterpretCommandThread(void *threadID) {
           //ask for it again
           PSC_SendCommand(cmd);
         }else{
+          expectedParamNum +=1;
+          // if(expectedParamNum == (int)OPLO){
+          //   expectedParamNum
+          // }
           cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
           PSC_SendCommand(cmd);
-          expectedParamNum +=1;
-          if(expectedParamNum >= (int)NUM_PARAMS -5){
+          
+          if(expectedParamNum +1>= (int)NUM_PARAMS -5){
+            expectedParamNum = 0;
             PSC_g_startGetAllParameters = 0;
             control_Group->activate();
           }
@@ -200,7 +214,7 @@ void * PSC_InterpretCommandThread(void *threadID) {
       Fl::lock();
       switch(PSC_g_inputCMD.param){
         case SPEED:
-          std::cout<<"Debug 2\n";
+         
           if(getOrSet){walkSpeed_Valuator->input.value(std::to_string( (int)PSC_g_inputCMD.vals[0]).data());}
           else{
             // messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkMaxTime);
