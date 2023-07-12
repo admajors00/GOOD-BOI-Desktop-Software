@@ -276,26 +276,26 @@ void * PSC_InterpretCommandThread(void *threadID) {
           cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
           cmd.numVals = 1;
           cmd.vals[0] = oploNum;
-          PSC_SendCommand(cmd);
           oploNum++;
+          PSC_SendCommand(cmd);
+          
           
         }else if(expectedParamNum == (int)OPLO){
           getOPLO = true;
           cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
           cmd.numVals = 1;
           cmd.vals[0] = oploNum;
-          PSC_SendCommand(cmd);
           oploNum++;
+          PSC_SendCommand(cmd);
+          
+        }else if(expectedParamNum+1> (int)OPLO){
+          expectedParamNum = 0;
+          PSC_g_startGetAllParameters = 0;
+          control_Group->activate();
         }else{
           expectedParamNum +=1;
           cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
-          PSC_SendCommand(cmd);
-          
-          if(expectedParamNum +1>= (int)NUM_PARAMS -5){
-            expectedParamNum = 0;
-            PSC_g_startGetAllParameters = 0;
-            control_Group->activate();
-          }
+          PSC_SendCommand(cmd);    
         }          
       }
       PSC_g_newCmdFromBoard = false;
