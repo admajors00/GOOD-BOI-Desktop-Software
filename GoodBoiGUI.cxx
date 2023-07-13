@@ -17,8 +17,9 @@ void connect_Button_CB(Fl_Widget*, void*) {
   
   if(wiringPiSetup()<0){
   	buff1->text("Error opening WP");
-  	return;	
-  }
+  	return;
+  		
+    }
   g_FD = serialOpen("/dev/ttyS0", 115200);
   if(g_FD != -1){
   	buff1->text("Connected");
@@ -33,21 +34,21 @@ void connect_Button_CB(Fl_Widget*, void*) {
 
 void start_Button_CB(Fl_Widget*, void*) {
   status_TextDisplay->buffer(buff1);
-  CHECK_FOR_SERIAL_MESSAGES = true;
-  UPDATE_SERIAL_MSG_WINDOW  = true;
-  UPDATE_DATA_DISPLAY = !UPDATE_SERIAL_MSG_WINDOW;
-  buff1->text("Started");
+    CHECK_FOR_SERIAL_MESSAGES = true;
+    UPDATE_SERIAL_MSG_WINDOW  = true;
+    UPDATE_DATA_DISPLAY = !UPDATE_SERIAL_MSG_WINDOW;
+    buff1->text("Started");
 }
 
 void stop_Button_CB(Fl_Widget*, void*) {
   status_TextDisplay->buffer(buff1);
     
-  buff1->text("Stopped");
-  
-  CHECK_FOR_SERIAL_MESSAGES = false;
-  UPDATE_DATA_DISPLAY = false;
-  UPDATE_SERIAL_MSG_WINDOW = false;
-  clearBuffer();
+    buff1->text("Stopped");
+    
+    CHECK_FOR_SERIAL_MESSAGES = false;
+    UPDATE_DATA_DISPLAY = false;
+    UPDATE_SERIAL_MSG_WINDOW = false;
+    clearBuffer();
 }
 
 void send_Button_CB(Fl_Widget*, void*) {
@@ -58,87 +59,87 @@ void send_Button_CB(Fl_Widget*, void*) {
 
 void controlButtons_CB(Fl_Widget*, int buttonNum) {
   std::string reply;
-  PSC_CMD cmd;
-  cmd.action = GETPARAM;
-  cmd.numVals = 0;
-  switch(buttonNum){
-    case 1:
-      serialPrintf(g_FD,"<stand>");
-      break;
-    case 2:
-      PSC_g_startGetAllParameters = 0;
-            control_Group->activate();
-      
-      break;
-    case 3:
-      serialPrintf(g_FD,"<layDown>");
-      break;
-    case 4:
-      serialPrintf(g_FD,"<Walk>");
-      break;
-    case 5:
-      reply = "<SETPARAM,SPEED,";
-      reply.append(walkSpeed_Valuator->input.value());
-      reply.append( ";>");
-      break;
-    case 6:
-      reply = "<SETPARAM,DIST,";
-      reply.append(stepDist_Valuator->input.value());     
-      reply.append( ";>");     
-      break;
-    case 7:
-      reply = "<SETPARAM,HEIGHT,";
-      reply.append(walkHeight_Valuator->input.value());
-      reply.append( ";>");          
-      break;
-    case 8:
-      reply = "<SETPARAM,DIR,";
-      reply.append(walkDir_Valuator->input.value());   
-      reply.append( ";>");       
-      break;
-    case 9:
-      if(CHECK_FOR_SERIAL_MESSAGES){
-        cmd.param = SPEED;
-        control_Group->deactivate();
-        PSC_SendCommand(cmd);
-        PSC_g_startGetAllParameters = true;
-      }
-
-  }
+    PSC_CMD cmd;
+    cmd.action = GETPARAM;
+    cmd.numVals = 0;
+    switch(buttonNum){
+      case 1:
+        serialPrintf(g_FD,"<stand>");
+        break;
+      case 2:
+        PSC_g_startGetAllParameters = 0;
+              control_Group->activate();
+        
+        break;
+      case 3:
+        serialPrintf(g_FD,"<layDown>");
+        break;
+      case 4:
+        serialPrintf(g_FD,"<Walk>");
+        break;
+      case 5:
+        reply = "<SETPARAM,SPEED,";
+        reply.append(walkSpeed_Valuator->input.value());
+        reply.append( ";>");
+        break;
+      case 6:
+        reply = "<SETPARAM,DIST,";
+        reply.append(stepDist_Valuator->input.value());     
+        reply.append( ";>");     
+        break;
+      case 7:
+        reply = "<SETPARAM,HEIGHT,";
+        reply.append(walkHeight_Valuator->input.value());
+        reply.append( ";>");          
+        break;
+      case 8:
+        reply = "<SETPARAM,DIR,";
+        reply.append(walkDir_Valuator->input.value());   
+        reply.append( ";>");       
+        break;
+      case 9:
+        if(CHECK_FOR_SERIAL_MESSAGES){
+          cmd.param = SPEED;
+          control_Group->deactivate();
+          PSC_SendCommand(cmd);
+          PSC_g_startGetAllParameters = true;
+        }
   
-  serialPrintf(g_FD, reply.data());
+    }
+    
+    serialPrintf(g_FD, reply.data());
 }
 
 void OpenLoopOffset_CB(Fl_Widget*,int num) {
   std::string reply;
-  switch(num){
-    case 1:
-      reply = "<SETPARAM,OPLO,1,";
-      reply.append(openLoopOffset1X_Valuator->input.value()); 
-      reply += ",";
-      reply.append(openLoopOffset1Y_Valuator->input.value()); 
-      break;
-    case 2:
-      reply = "<SETPARAM,OPLO,2,";
-      reply.append(openLoopOffset2X_Valuator->input.value()); 
-      reply += ",";
-      reply.append(openLoopOffset2Y_Valuator->input.value()); 
-      break;
-    case 3:
-      reply = "<SETPARAM,OPLO,3,";
-      reply.append(openLoopOffset3X_Valuator->input.value()); 
-      reply += ",";
-      reply.append(openLoopOffset3Y_Valuator->input.value()); 
-      break;
-    case 4:
-      reply = "<SETPARAM,OPLO,4,";
-      reply.append(openLoopOffset4X_Valuator->input.value()); 
-      reply += ",";
-      reply.append(openLoopOffset4Y_Valuator->input.value()); 
-      break;
-  }
-  reply.append( ";>");
-  serialPrintf(g_FD, reply.data());
+      switch(num){
+        	case 1:
+        		reply = "<SETPARAM,OPLO,1,";
+            reply.append(openLoopOffset1X_Valuator->input.value()); 
+            reply += ",";
+            reply.append(openLoopOffset1Y_Valuator->input.value()); 
+            break;
+          case 2:
+        		reply = "<SETPARAM,OPLO,2,";
+            reply.append(openLoopOffset2X_Valuator->input.value()); 
+            reply += ",";
+            reply.append(openLoopOffset2Y_Valuator->input.value()); 
+            break;
+          case 3:
+        		reply = "<SETPARAM,OPLO,3,";
+            reply.append(openLoopOffset3X_Valuator->input.value()); 
+            reply += ",";
+            reply.append(openLoopOffset3Y_Valuator->input.value()); 
+            break;
+          case 4:
+        		reply = "<SETPARAM,OPLO,4,";
+            reply.append(openLoopOffset4X_Valuator->input.value()); 
+            reply += ",";
+            reply.append(openLoopOffset4Y_Valuator->input.value()); 
+            break;
+        }
+        reply.append( ";>");
+        serialPrintf(g_FD, reply.data());
 }
 
 void* updateSerialMsgWindowThread(void*) {
@@ -150,240 +151,240 @@ void* updateSerialMsgWindowThread(void*) {
   int i = 0;
   std::string temp;
   while(1){
-    if(comms_Group->visible() || control_Group->visible()){
-      UPDATE_SERIAL_MSG_WINDOW = true;
-    }else{
-      UPDATE_SERIAL_MSG_WINDOW = false;
-    }
-    if(UPDATE_SERIAL_MSG_WINDOW){	
-      if(NEW_DATA_FROM_BOARD){
-      i++;
-      temp = std::to_string(i) + ":\t";
-      Fl::lock();
-      commsOutput_Output->insert(temp.c_str());
-      commsOutput_Output->scroll(commsOutput_Output->insert_position(), 0);
-      commsOutput_Output->insert(MSG.c_str());
-      commsOutput_Output->insert("\n");
-      Fl::unlock();
-      Fl::awake();	
-      MSG = "";
-      NEW_DATA_FROM_BOARD = false;
-      }
-    }
+    	if(comms_Group->visible() || control_Group->visible()){
+    		UPDATE_SERIAL_MSG_WINDOW = true;
+    	}else{
+    		UPDATE_SERIAL_MSG_WINDOW = false;
+    	}
+  	if(UPDATE_SERIAL_MSG_WINDOW){	
+          	if(NEW_DATA_FROM_BOARD){
+          		i++;
+          		temp = std::to_string(i) + ":\t";
+          		Fl::lock();
+                          commsOutput_Output->insert(temp.c_str());
+                		commsOutput_Output->scroll(commsOutput_Output->insert_position(), 0);
+                		commsOutput_Output->insert(MSG.c_str());
+                		commsOutput_Output->insert("\n");
+                		Fl::unlock();
+          		Fl::awake();	
+          		MSG = "";
+          		NEW_DATA_FROM_BOARD = false;
+          	}
+          }
   }
 }
 
 void * PSC_InterpretCommandThread(void *threadID) {
   int getOrSet = 0; // 0 for get 1 for set;
-  int messageLen = 0;
-  char response[20];
-  int expectedParamNum=0;
-  bool getOPLO = 0;
-  int oploNum = 0;
-  PSC_CMD cmd;
-  cmd.action = GETPARAM;
-  cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
-  cmd.numVals = 0;
-  while(1){
-    if(PSC_g_newCmdFromBoard){
-      
-      if(PSC_g_inputCMD.action == SETPARAM){
-        //messageLen = sprintf(response, "<%s set>",PARAM_STRING[cmd.param]);
-        // PSC_SendToOutputBuffer( response, messageLen);
-        getOrSet = 1;
-      }
-      
-      Fl::lock();
-      switch(PSC_g_inputCMD.param){
-        case SPEED:
-         
-          if(getOrSet){walkSpeed_Valuator->input.value(std::to_string( (int)PSC_g_inputCMD.vals[0]).data());}
-          else{
-            // messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkMaxTime);
-            // PSC_SendToOutputBuffer( response, messageLen);
-          }
-          break;
-        case DIST:
-          if(getOrSet){stepDist_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
-          else{
-            // messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkDistance);
-            // PSC_SendToOutputBuffer(response, messageLen);
-          }
-          break;
-        case HEIGHT:
-          if(getOrSet){walkHeight_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
-          else{
-            // messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkHeight);
-            // PSC_SendToOutputBuffer( response, messageLen);
-          }
-          break;
-        case DIR:
-          if(getOrSet){walkDir_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
-          else{
-            // messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkDirection);
-            // PSC_SendToOutputBuffer( response, messageLen);
-          }
-          break;
-        case OPLO:
-          if(getOrSet){
+    int messageLen = 0;
+    char response[20];
+    int expectedParamNum=0;
+    bool getOPLO = 0;
+    int oploNum = 0;
+    PSC_CMD cmd;
+    cmd.action = GETPARAM;
+    cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
+    cmd.numVals = 0;
+    while(1){
+      if(PSC_g_newCmdFromBoard){
+        
+        if(PSC_g_inputCMD.action == SETPARAM){
+          //messageLen = sprintf(response, "<%s set>",PARAM_STRING[cmd.param]);
+          // PSC_SendToOutputBuffer( response, messageLen);
+          getOrSet = 1;
+        }
+        
+        Fl::lock();
+        switch(PSC_g_inputCMD.param){
+          case SPEED:
+           
+            if(getOrSet){walkSpeed_Valuator->input.value(std::to_string( (int)PSC_g_inputCMD.vals[0]).data());}
+            else{
+              // messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkMaxTime);
+              // PSC_SendToOutputBuffer( response, messageLen);
+            }
+            break;
+          case DIST:
+            if(getOrSet){stepDist_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
+            else{
+              // messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkDistance);
+              // PSC_SendToOutputBuffer(response, messageLen);
+            }
+            break;
+          case HEIGHT:
+            if(getOrSet){walkHeight_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
+            else{
+              // messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkHeight);
+              // PSC_SendToOutputBuffer( response, messageLen);
+            }
+            break;
+          case DIR:
+            if(getOrSet){walkDir_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
+            else{
+              // messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkDirection);
+              // PSC_SendToOutputBuffer( response, messageLen);
+            }
+            break;
+          case OPLO:
+            if(getOrSet){
+              
+              openLoopOffset1X_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[1]).data());
+              openLoopOffset1Y_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[2]).data());
+  
+            }else{
+              // messageLen = sprintf(response, "<%0.2f,%0.2f;>",LEG_CONT_g_walkOpenLoopOffsets[(int)cmd.vals[0]].x, LEG_CONT_g_walkOpenLoopOffsets[(int)cmd.vals[0]].y);
+              // PSC_SendToOutputBuffer( response, messageLen);
+            }
+            break;
+          case STOF:
+            if(getOrSet){
+              // LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].x = cmd.vals[1];
+              // LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].y = cmd.vals[2];
+            }else{
+              // messageLen = sprintf(response, "<%0.2f,%0.2f;>",LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].x, LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].y);
+              // PSC_SendToOutputBuffer( response, messageLen);
+            }
+            break;
+          case IMUDATA:
+            if(!getOrSet){
+              // messageLen = sprintf(response, "<%0.2f,%0.2f,%0.2f,%0.2f,%0.2f,%0.2f;>",
+              // 						ADI_IMU_burstReadBufScaled[2],
+              // 						ADI_IMU_burstReadBufScaled[3],
+              // 						ADI_IMU_burstReadBufScaled[4],
+              // 						ADI_IMU_burstReadBufScaled[5],
+              // 						ADI_IMU_burstReadBufScaled[6],
+              // 						ADI_IMU_burstReadBufScaled[7]);
+              // PSC_SendToOutputBuffer( response, messageLen);
+            }
+            break;
+          default:
+            break;
+        }
+        Fl::unlock();
+        Fl::awake();
+  
+        if(PSC_g_startGetAllParameters){
+          if((int)PSC_g_inputCMD.param != expectedParamNum){
+            //ask for it again
+            PSC_SendCommand(cmd);
+          }else if(getOPLO ){  //oplo is open loop ffset and there is one for each leg so we must ask this for param 4 times
+            if(oploNum > 4){
+              getOPLO = false;
+              expectedParamNum +=1;
+              cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
+              PSC_SendCommand(cmd);
+            }           
+            cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
+            cmd.numVals = 1;
+            cmd.vals[0] = oploNum;
+            oploNum++;
+            PSC_SendCommand(cmd);
             
-            openLoopOffset1X_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[1]).data());
-            openLoopOffset1Y_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[2]).data());
-
+            
+          }else if(expectedParamNum == (int)OPLO){
+            getOPLO = true;
+            cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
+            cmd.numVals = 1;
+            cmd.vals[0] = oploNum;
+            oploNum++;
+            PSC_SendCommand(cmd);
+            
+          }else if(expectedParamNum+1> (int)OPLO){
+            expectedParamNum = 0;
+            PSC_g_startGetAllParameters = 0;
+            control_Group->activate();
           }else{
-            // messageLen = sprintf(response, "<%0.2f,%0.2f;>",LEG_CONT_g_walkOpenLoopOffsets[(int)cmd.vals[0]].x, LEG_CONT_g_walkOpenLoopOffsets[(int)cmd.vals[0]].y);
-            // PSC_SendToOutputBuffer( response, messageLen);
-          }
-          break;
-        case STOF:
-          if(getOrSet){
-            // LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].x = cmd.vals[1];
-            // LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].y = cmd.vals[2];
-          }else{
-            // messageLen = sprintf(response, "<%0.2f,%0.2f;>",LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].x, LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].y);
-            // PSC_SendToOutputBuffer( response, messageLen);
-          }
-          break;
-        case IMUDATA:
-          if(!getOrSet){
-            // messageLen = sprintf(response, "<%0.2f,%0.2f,%0.2f,%0.2f,%0.2f,%0.2f;>",
-            // 						ADI_IMU_burstReadBufScaled[2],
-            // 						ADI_IMU_burstReadBufScaled[3],
-            // 						ADI_IMU_burstReadBufScaled[4],
-            // 						ADI_IMU_burstReadBufScaled[5],
-            // 						ADI_IMU_burstReadBufScaled[6],
-            // 						ADI_IMU_burstReadBufScaled[7]);
-            // PSC_SendToOutputBuffer( response, messageLen);
-          }
-          break;
-        default:
-          break;
-      }
-      Fl::unlock();
-      Fl::awake();
-
-      if(PSC_g_startGetAllParameters){
-        if((int)PSC_g_inputCMD.param != expectedParamNum){
-          //ask for it again
-          PSC_SendCommand(cmd);
-        }else if(getOPLO ){  //oplo is open loop ffset and there is one for each leg so we must ask this for param 4 times
-          if(oploNum > 4){
-            getOPLO = false;
             expectedParamNum +=1;
             cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
-            PSC_SendCommand(cmd);
-          }           
-          cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
-          cmd.numVals = 1;
-          cmd.vals[0] = oploNum;
-          oploNum++;
-          PSC_SendCommand(cmd);
-          
-          
-        }else if(expectedParamNum == (int)OPLO){
-          getOPLO = true;
-          cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
-          cmd.numVals = 1;
-          cmd.vals[0] = oploNum;
-          oploNum++;
-          PSC_SendCommand(cmd);
-          
-        }else if(expectedParamNum+1> (int)OPLO){
-          expectedParamNum = 0;
-          PSC_g_startGetAllParameters = 0;
-          control_Group->activate();
-        }else{
-          expectedParamNum +=1;
-          cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
-          PSC_SendCommand(cmd);    
-        }          
-      }
-      PSC_g_newCmdFromBoard = false;
-    } 
-  }
-  return NULL;
+            PSC_SendCommand(cmd);    
+          }          
+        }
+        PSC_g_newCmdFromBoard = false;
+      } 
+    }
+    return NULL;
 }
 
 void* updateDataDisplayThread(void*) {
   std::string temp;
-      std::string::size_type sz;
-      int newString = 1;
-      int numIMUData = 0;
-      bool readyForNext = true;//not waiting for response
-      std::chrono::time_point<std::chrono::system_clock> start, current, end;
-       std::chrono::duration<double> elapsed_seconds, refreshRate;
-      start = std::chrono::system_clock::now();
-
-      while(1){
-      	if(!displayData_Group->visible()){
-      		UPDATE_DATA_DISPLAY = false;
-          readyForNext = true;	
-      	}else{
-      		UPDATE_DATA_DISPLAY = true;	
-      	}
-        if(UPDATE_DATA_DISPLAY ){//if update display is turned off while waiting for resposne  we will uave a problem
-            //std::cout<<"debug 0\n";
-            current = std::chrono::system_clock::now();
-            elapsed_seconds = current-start;
-            if(elapsed_seconds.count()>=.05 && readyForNext){
-              readyForNext = false;
-              serialPrintf(g_FD,"<");
-              serialPrintf(g_FD,"imuDataRqst");
-              serialPrintf(g_FD,">");
-              start = std::chrono::system_clock::now();
-              numIMUData++;
-            }	
-            //std::cout<<"debug 1\n";
-            if(NEW_DATA_FROM_BOARD){
-              std::string imuData[6];
-              numIMUData = 0;
-              temp = "";
-              //std::cout<<"debug 2\n";
-              std::cout<<"MSG: " << MSG;
-              //std::cout<<"debug 3\n";
-              for(int i=0;i< (int)MSG.size(); i++){
-                  if(numIMUData>=6){
-                    
-                    break;		
-                  }
-                  if(newString){
-                    temp[0] = MSG[i];
-                    newString =0;
-                  } 
-                  if(MSG[i] == ',' && !newString){
-                    newString = 1;
-                    
-                    imuData[numIMUData] = temp;
-                    numIMUData++;
-                    temp = "";
-                    
-                  }else{
-                    temp += MSG[i];
-                  }
-                  
-              }
+        std::string::size_type sz;
+        int newString = 1;
+        int numIMUData = 0;
+        bool readyForNext = true;//not waiting for response
+        std::chrono::time_point<std::chrono::system_clock> start, current, end;
+         std::chrono::duration<double> elapsed_seconds, refreshRate;
+        start = std::chrono::system_clock::now();
+  
+        while(1){
+        	if(!displayData_Group->visible()){
+        		UPDATE_DATA_DISPLAY = false;
+            readyForNext = true;	
+        	}else{
+        		UPDATE_DATA_DISPLAY = true;	
+        	}
+          if(UPDATE_DATA_DISPLAY ){//if update display is turned off while waiting for resposne  we will uave a problem
+              //std::cout<<"debug 0\n";
+              current = std::chrono::system_clock::now();
+              elapsed_seconds = current-start;
+              if(elapsed_seconds.count()>=.05 && readyForNext){
+                readyForNext = false;
+                serialPrintf(g_FD,"<");
+                serialPrintf(g_FD,"imuDataRqst");
+                serialPrintf(g_FD,">");
+                start = std::chrono::system_clock::now();
+                numIMUData++;
+              }	
               //std::cout<<"debug 1\n";
-              //std::cout<<imuData<<std::endl;
-              Fl::lock();
-              xAcc_Value->value(std::stod(imuData[0])); 
-              yAcc_Value->value(std::stod(imuData[1])); 
-              zAcc_Value->value(std::stod(imuData[2])); 
-              xGyro_Value->value(std::stod(imuData[3])); 
-              yGyro_Value->value(std::stod(imuData[4])); 
-              zGyro_Value->value(std::stod(imuData[5])); 
-              Fl::unlock();
-              Fl::awake();	
-              MSG = "";
-              NEW_DATA_FROM_BOARD = false;
-              readyForNext = true;
-              end = std::chrono::system_clock::now();
-              refreshRate = start-end;
-              //std::cout<< "Refresh period: " << refreshRate.count() <<std::endl;
-            }
-        }
-
-        
-    }
+              if(NEW_DATA_FROM_BOARD){
+                std::string imuData[6];
+                numIMUData = 0;
+                temp = "";
+                //std::cout<<"debug 2\n";
+                std::cout<<"MSG: " << MSG;
+                //std::cout<<"debug 3\n";
+                for(int i=0;i< (int)MSG.size(); i++){
+                    if(numIMUData>=6){
+                      
+                      break;		
+                    }
+                    if(newString){
+                      temp[0] = MSG[i];
+                      newString =0;
+                    } 
+                    if(MSG[i] == ',' && !newString){
+                      newString = 1;
+                      
+                      imuData[numIMUData] = temp;
+                      numIMUData++;
+                      temp = "";
+                      
+                    }else{
+                      temp += MSG[i];
+                    }
+                    
+                }
+                //std::cout<<"debug 1\n";
+                //std::cout<<imuData<<std::endl;
+                Fl::lock();
+                xAcc_Value->value(std::stod(imuData[0])); 
+                yAcc_Value->value(std::stod(imuData[1])); 
+                zAcc_Value->value(std::stod(imuData[2])); 
+                xGyro_Value->value(std::stod(imuData[3])); 
+                yGyro_Value->value(std::stod(imuData[4])); 
+                zGyro_Value->value(std::stod(imuData[5])); 
+                Fl::unlock();
+                Fl::awake();	
+                MSG = "";
+                NEW_DATA_FROM_BOARD = false;
+                readyForNext = true;
+                end = std::chrono::system_clock::now();
+                refreshRate = start-end;
+                //std::cout<< "Refresh period: " << refreshRate.count() <<std::endl;
+              }
+          }
+  
+          
+      }
 }
 
 Fl_Group *control_Group=(Fl_Group *)0;
@@ -502,49 +503,53 @@ int main(int argc, char **argv) {
         } // Fl_Button* walk_Button
         { stepDist_Valuator = new Fl_Value_Input(225, 135, 50, 25, "Step Dist:");
           stepDist_Valuator->callback((Fl_Callback*)controlButtons_CB, (void*)(6));
+          stepDist_Valuator->when(FL_WHEN_ENTER_KEY);
         } // Fl_Value_Input* stepDist_Valuator
         { walkSpeed_Valuator = new Fl_Value_Input(225, 105, 50, 25, "Walk Speed: ");
           walkSpeed_Valuator->callback((Fl_Callback*)controlButtons_CB, (void*)(5));
+          walkSpeed_Valuator->when(FL_WHEN_ENTER_KEY);
         } // Fl_Value_Input* walkSpeed_Valuator
         { walkHeight_Valuator = new Fl_Value_Input(225, 165, 50, 25, "Walk Height: ");
           walkHeight_Valuator->callback((Fl_Callback*)controlButtons_CB, (void*)(7));
+          walkHeight_Valuator->when(FL_WHEN_ENTER_KEY);
         } // Fl_Value_Input* walkHeight_Valuator
         { walkDir_Valuator = new Fl_Value_Input(225, 195, 50, 25, "Walk Direction: ");
           walkDir_Valuator->callback((Fl_Callback*)controlButtons_CB, (void*)(8));
+          walkDir_Valuator->when(FL_WHEN_ENTER_KEY);
         } // Fl_Value_Input* walkDir_Valuator
-        { openLoopOffset1X_Valuator = new Fl_Value_Input(340, 100, 25, 25, "X: ");
+        { openLoopOffset1X_Valuator = new Fl_Value_Input(313, 100, 45, 25, "X: ");
           openLoopOffset1X_Valuator->callback((Fl_Callback*)OpenLoopOffset_CB, (void*)(1));
           openLoopOffset1X_Valuator->when(FL_WHEN_ENTER_KEY);
         } // Fl_Value_Input* openLoopOffset1X_Valuator
-        { openLoopOffset1Y_Valuator = new Fl_Value_Input(387, 100, 25, 25, "Y: ");
+        { openLoopOffset1Y_Valuator = new Fl_Value_Input(380, 100, 43, 25, "Y: ");
           openLoopOffset1Y_Valuator->callback((Fl_Callback*)OpenLoopOffset_CB, (void*)(1));
           openLoopOffset1Y_Valuator->when(FL_WHEN_ENTER_KEY);
         } // Fl_Value_Input* openLoopOffset1Y_Valuator
-        { openLoopOffset2X_Valuator = new Fl_Value_Input(475, 100, 25, 25, "X: ");
+        { openLoopOffset2X_Valuator = new Fl_Value_Input(470, 100, 45, 25, "X: ");
           openLoopOffset2X_Valuator->callback((Fl_Callback*)OpenLoopOffset_CB, (void*)(2));
           openLoopOffset2X_Valuator->when(FL_WHEN_ENTER_KEY);
         } // Fl_Value_Input* openLoopOffset2X_Valuator
-        { openLoopOffset2Y_Valuator = new Fl_Value_Input(522, 100, 25, 25, "Y: ");
+        { openLoopOffset2Y_Valuator = new Fl_Value_Input(537, 100, 48, 25, "Y: ");
           openLoopOffset2Y_Valuator->callback((Fl_Callback*)OpenLoopOffset_CB, (void*)(2));
           openLoopOffset2Y_Valuator->when(FL_WHEN_ENTER_KEY);
         } // Fl_Value_Input* openLoopOffset2Y_Valuator
-        { openLoopOffset3X_Valuator = new Fl_Value_Input(340, 185, 25, 25, "X: ");
+        { openLoopOffset3X_Valuator = new Fl_Value_Input(313, 185, 45, 25, "X: ");
           openLoopOffset3X_Valuator->callback((Fl_Callback*)OpenLoopOffset_CB, (void*)(3));
           openLoopOffset3X_Valuator->when(FL_WHEN_ENTER_KEY);
         } // Fl_Value_Input* openLoopOffset3X_Valuator
-        { openLoopOffset3Y_Valuator = new Fl_Value_Input(387, 185, 25, 25, "Y: ");
+        { openLoopOffset3Y_Valuator = new Fl_Value_Input(380, 185, 43, 25, "Y: ");
           openLoopOffset3Y_Valuator->callback((Fl_Callback*)OpenLoopOffset_CB, (void*)(3));
           openLoopOffset3Y_Valuator->when(FL_WHEN_ENTER_KEY);
         } // Fl_Value_Input* openLoopOffset3Y_Valuator
-        { openLoopOffset4X_Valuator = new Fl_Value_Input(475, 185, 25, 25, "X: ");
+        { openLoopOffset4X_Valuator = new Fl_Value_Input(470, 185, 45, 25, "X: ");
           openLoopOffset4X_Valuator->callback((Fl_Callback*)OpenLoopOffset_CB, (void*)(4));
           openLoopOffset4X_Valuator->when(FL_WHEN_ENTER_KEY);
         } // Fl_Value_Input* openLoopOffset4X_Valuator
-        { openLoopOffset4Y_Valuator = new Fl_Value_Input(522, 185, 25, 25, "Y: ");
+        { openLoopOffset4Y_Valuator = new Fl_Value_Input(537, 185, 48, 25, "Y: ");
           openLoopOffset4Y_Valuator->callback((Fl_Callback*)OpenLoopOffset_CB, (void*)(4));
           openLoopOffset4Y_Valuator->when(FL_WHEN_ENTER_KEY);
         } // Fl_Value_Input* openLoopOffset4Y_Valuator
-        { getParams_Button = new Fl_Button(15, 245, 70, 20, "Get Params");
+        { getParams_Button = new Fl_Button(15, 355, 85, 25, "Get Params");
           getParams_Button->callback((Fl_Callback*)controlButtons_CB, (void*)(9));
         } // Fl_Button* getParams_Button
         control_Group->end();
