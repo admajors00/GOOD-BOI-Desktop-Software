@@ -59,87 +59,84 @@ void send_Button_CB(Fl_Widget*, void*) {
 
 void controlButtons_CB(Fl_Widget*, int buttonNum) {
   std::string reply;
-    PSC_CMD cmd;
-    cmd.action = GETPARAM;
-    cmd.numVals = 0;
-    switch(buttonNum){
-      case 1:
-        serialPrintf(g_FD,"<stand>");
-        break;
-      case 2:
-        PSC_g_startGetAllParameters = 0;
-              control_Group->activate();
-        
-        break;
-      case 3:
-        serialPrintf(g_FD,"<layDown>");
-        break;
-      case 4:
-        serialPrintf(g_FD,"<Walk>");
-        break;
-      case 5:
-        reply = "<SETPARAM,SPEED,";
-        reply.append(walkSpeed_Valuator->input.value());
-        reply.append( ";>");
-        break;
-      case 6:
-        reply = "<SETPARAM,DIST,";
-        reply.append(stepDist_Valuator->input.value());     
-        reply.append( ";>");     
-        break;
-      case 7:
-        reply = "<SETPARAM,HEIGHT,";
-        reply.append(walkHeight_Valuator->input.value());
-        reply.append( ";>");          
-        break;
-      case 8:
-        reply = "<SETPARAM,DIR,";
-        reply.append(walkDir_Valuator->input.value());   
-        reply.append( ";>");       
-        break;
-      case 9:
-        if(CHECK_FOR_SERIAL_MESSAGES){
-          cmd.param = SPEED;
-          control_Group->deactivate();
-          PSC_SendCommand(cmd);
-          PSC_g_startGetAllParameters = true;
-        }
-  
-    }
-    
-    serialPrintf(g_FD, reply.data());
+  PSC_CMD cmd;
+  cmd.action = GETPARAM;
+  cmd.numVals = 0;
+  switch(buttonNum){
+    case 1:
+      serialPrintf(g_FD,"<stand>");
+      break;
+    case 2:
+      
+      break;
+    case 3:
+      serialPrintf(g_FD,"<layDown>");
+      break;
+    case 4:
+      serialPrintf(g_FD,"<Walk>");
+      break;
+    case 5:
+      reply = "<SETPARAM,SPEED,";
+      reply.append(walkSpeed_Valuator->input.value());
+      reply.append( ";>");
+      break;
+    case 6:
+      reply = "<SETPARAM,DIST,";
+      reply.append(stepDist_Valuator->input.value());     
+      reply.append( ";>");     
+      break;
+    case 7:
+      reply = "<SETPARAM,HEIGHT,";
+      reply.append(walkHeight_Valuator->input.value());
+      reply.append( ";>");          
+      break;
+    case 8:
+      reply = "<SETPARAM,DIR,";
+      reply.append(walkDir_Valuator->input.value());   
+      reply.append( ";>");       
+      break;
+    case 9:
+      if(CHECK_FOR_SERIAL_MESSAGES){
+        cmd.param = SPEED;
+        control_Group->deactivate();
+        PSC_SendCommand(cmd);
+        PSC_g_startGetAllParameters = true;
+      }
+      break;
+  }
+  serialPrintf(g_FD, reply.data());
 }
 
 void OpenLoopOffset_CB(Fl_Widget*,int num) {
   std::string reply;
-      switch(num){
-        	case 1:
-        		reply = "<SETPARAM,OPLO,1,";
-            reply.append(openLoopOffset1X_Valuator->input.value()); 
-            reply += ",";
-            reply.append(openLoopOffset1Y_Valuator->input.value()); 
-            break;
-          case 2:
-        		reply = "<SETPARAM,OPLO,2,";
-            reply.append(openLoopOffset2X_Valuator->input.value()); 
-            reply += ",";
-            reply.append(openLoopOffset2Y_Valuator->input.value()); 
-            break;
-          case 3:
-        		reply = "<SETPARAM,OPLO,3,";
-            reply.append(openLoopOffset3X_Valuator->input.value()); 
-            reply += ",";
-            reply.append(openLoopOffset3Y_Valuator->input.value()); 
-            break;
-          case 4:
-        		reply = "<SETPARAM,OPLO,4,";
-            reply.append(openLoopOffset4X_Valuator->input.value()); 
-            reply += ",";
-            reply.append(openLoopOffset4Y_Valuator->input.value()); 
-            break;
-        }
-        reply.append( ";>");
-        serialPrintf(g_FD, reply.data());
+  switch(num){
+    case 1:
+      reply = "<SETPARAM,OPLO,0,";
+      reply.append(openLoopOffset1X_Valuator->input.value()); 
+      reply += ",";
+      reply.append(openLoopOffset1Y_Valuator->input.value()); 
+      break;
+    case 2:
+      reply = "<SETPARAM,OPLO,1,";
+      reply.append(openLoopOffset2X_Valuator->input.value()); 
+      reply += ",";
+      reply.append(openLoopOffset2Y_Valuator->input.value()); 
+      break;
+    case 3:
+      reply = "<SETPARAM,OPLO,2,";
+      reply.append(openLoopOffset3X_Valuator->input.value()); 
+      reply += ",";
+      reply.append(openLoopOffset3Y_Valuator->input.value()); 
+      break;
+    case 4:
+      reply = "<SETPARAM,OPLO,3,";
+      reply.append(openLoopOffset4X_Valuator->input.value()); 
+      reply += ",";
+      reply.append(openLoopOffset4Y_Valuator->input.value()); 
+      break;
+  }
+  reply.append( ";>");
+  serialPrintf(g_FD, reply.data());
 }
 
 void* updateSerialMsgWindowThread(void*) {
@@ -151,158 +148,142 @@ void* updateSerialMsgWindowThread(void*) {
   int i = 0;
   std::string temp;
   while(1){
-    	if(comms_Group->visible() || control_Group->visible()){
-    		UPDATE_SERIAL_MSG_WINDOW = true;
-    	}else{
-    		UPDATE_SERIAL_MSG_WINDOW = false;
-    	}
+    if(comms_Group->visible() || control_Group->visible()){
+      UPDATE_SERIAL_MSG_WINDOW = true;
+    }else{
+      UPDATE_SERIAL_MSG_WINDOW = false;
+    }
   	if(UPDATE_SERIAL_MSG_WINDOW){	
-          	if(NEW_DATA_FROM_BOARD){
-          		i++;
-          		temp = std::to_string(i) + ":\t";
-          		Fl::lock();
-                          commsOutput_Output->insert(temp.c_str());
-                		commsOutput_Output->scroll(commsOutput_Output->insert_position(), 0);
-                		commsOutput_Output->insert(MSG.c_str());
-                		commsOutput_Output->insert("\n");
-                		Fl::unlock();
-          		Fl::awake();	
-          		MSG = "";
-          		NEW_DATA_FROM_BOARD = false;
-          	}
-          }
+      if(NEW_DATA_FROM_BOARD){
+        i++;
+        temp = std::to_string(i) + ":\t";
+        Fl::lock();
+        commsOutput_Output->insert(temp.c_str());
+        commsOutput_Output->scroll(commsOutput_Output->insert_position(), 0);
+        commsOutput_Output->insert(MSG.c_str());
+        commsOutput_Output->insert("\n");
+        Fl::unlock();
+        Fl::awake();	
+        MSG = "";
+        NEW_DATA_FROM_BOARD = false;
+      }
+    }
   }
 }
 
 void * PSC_InterpretCommandThread(void *threadID) {
   int getOrSet = 0; // 0 for get 1 for set;
-    int messageLen = 0;
-    char response[20];
-    int expectedParamNum=0;
-    bool getOPLO = 0;
-    int oploNum = 0;
-    PSC_CMD cmd;
-    cmd.action = GETPARAM;
-    cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
-    cmd.numVals = 0;
-    while(1){
-      if(PSC_g_newCmdFromBoard){
-        
-        if(PSC_g_inputCMD.action == SETPARAM){
-          //messageLen = sprintf(response, "<%s set>",PARAM_STRING[cmd.param]);
-          // PSC_SendToOutputBuffer( response, messageLen);
-          getOrSet = 1;
-        }
-        
-        Fl::lock();
-        switch(PSC_g_inputCMD.param){
-          case SPEED:
-           
-            if(getOrSet){walkSpeed_Valuator->input.value(std::to_string( (int)PSC_g_inputCMD.vals[0]).data());}
-            else{
-              // messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkMaxTime);
-              // PSC_SendToOutputBuffer( response, messageLen);
+  int messageLen = 0;
+  char response[20];
+  int expectedParamNum=0;
+  bool getOPLO = 0;
+  int oploNum = 0;
+  PSC_CMD cmd;
+  cmd.action = GETPARAM;
+  cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
+  cmd.numVals = 0;
+  while(1){
+    if(PSC_g_newCmdFromBoard){
+      
+      if(PSC_g_inputCMD.action == SETPARAM){
+        //messageLen = sprintf(response, "<%s set>",PARAM_STRING[cmd.param]);
+        // PSC_SendToOutputBuffer( response, messageLen);
+        getOrSet = 1;
+      }
+      
+      Fl::lock();
+      switch(PSC_g_inputCMD.param){
+        case SPEED:
+          if(getOrSet){walkSpeed_Valuator->input.value(std::to_string( (int)PSC_g_inputCMD.vals[0]).data());}
+          break;
+        case DIST:
+          if(getOrSet){stepDist_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
+          break;
+        case HEIGHT:
+          if(getOrSet){walkHeight_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
+          break;
+        case DIR:
+          if(getOrSet){walkDir_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
+          break;
+        case OPLO:
+          if(getOrSet){
+            switch((int)PSC_g_inputCMD.vals[0]){
+              case 0:
+                openLoopOffset1X_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[1]).data());
+                openLoopOffset1Y_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[2]).data());
+                break;
+              case 1:
+                openLoopOffset2X_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[1]).data());
+                openLoopOffset2Y_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[2]).data());
+                break;
+              case 2:
+                openLoopOffset3X_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[1]).data());
+                openLoopOffset3Y_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[2]).data());
+                break;
+              case 3:
+                openLoopOffset4X_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[1]).data());
+                openLoopOffset4Y_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[2]).data());
+                break;
+              default:
+                break;
             }
-            break;
-          case DIST:
-            if(getOrSet){stepDist_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
-            else{
-              // messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkDistance);
-              // PSC_SendToOutputBuffer(response, messageLen);
-            }
-            break;
-          case HEIGHT:
-            if(getOrSet){walkHeight_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
-            else{
-              // messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkHeight);
-              // PSC_SendToOutputBuffer( response, messageLen);
-            }
-            break;
-          case DIR:
-            if(getOrSet){walkDir_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
-            else{
-              // messageLen = sprintf(response, "<%0.2f;>",LEG_CONT_g_walkDirection);
-              // PSC_SendToOutputBuffer( response, messageLen);
-            }
-            break;
-          case OPLO:
-            if(getOrSet){
-              
-              openLoopOffset1X_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[1]).data());
-              openLoopOffset1Y_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[2]).data());
-  
-            }else{
-              // messageLen = sprintf(response, "<%0.2f,%0.2f;>",LEG_CONT_g_walkOpenLoopOffsets[(int)cmd.vals[0]].x, LEG_CONT_g_walkOpenLoopOffsets[(int)cmd.vals[0]].y);
-              // PSC_SendToOutputBuffer( response, messageLen);
-            }
-            break;
-          case STOF:
-            if(getOrSet){
-              // LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].x = cmd.vals[1];
-              // LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].y = cmd.vals[2];
-            }else{
-              // messageLen = sprintf(response, "<%0.2f,%0.2f;>",LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].x, LEG_CONT_g_walkStartOffsets[(int)cmd.vals[0]].y);
-              // PSC_SendToOutputBuffer( response, messageLen);
-            }
-            break;
-          case IMUDATA:
-            if(!getOrSet){
-              // messageLen = sprintf(response, "<%0.2f,%0.2f,%0.2f,%0.2f,%0.2f,%0.2f;>",
-              // 						ADI_IMU_burstReadBufScaled[2],
-              // 						ADI_IMU_burstReadBufScaled[3],
-              // 						ADI_IMU_burstReadBufScaled[4],
-              // 						ADI_IMU_burstReadBufScaled[5],
-              // 						ADI_IMU_burstReadBufScaled[6],
-              // 						ADI_IMU_burstReadBufScaled[7]);
-              // PSC_SendToOutputBuffer( response, messageLen);
-            }
-            break;
-          default:
-            break;
-        }
-        Fl::unlock();
-        Fl::awake();
-  
-        if(PSC_g_startGetAllParameters){
-          if((int)PSC_g_inputCMD.param != expectedParamNum){
-            //ask for it again
-            PSC_SendCommand(cmd);
-          }else if(getOPLO ){  //oplo is open loop ffset and there is one for each leg so we must ask this for param 4 times
-            if(oploNum > 4){
-              getOPLO = false;
-              expectedParamNum +=1;
-              cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
-              PSC_SendCommand(cmd);
-            }           
-            cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
-            cmd.numVals = 1;
-            cmd.vals[0] = oploNum;
-            oploNum++;
-            PSC_SendCommand(cmd);
-            
-            
-          }else if(expectedParamNum == (int)OPLO){
-            getOPLO = true;
-            cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
-            cmd.numVals = 1;
-            cmd.vals[0] = oploNum;
-            oploNum++;
-            PSC_SendCommand(cmd);
-            
-          }else if(expectedParamNum+1> (int)OPLO){
-            expectedParamNum = 0;
-            PSC_g_startGetAllParameters = 0;
-            control_Group->activate();
-          }else{
+          }
+          break;
+        case STOF:
+          if(getOrSet){
+          }
+          break;
+        case IMUDATA:
+          if(!getOrSet){
+
+          }
+          break;
+        default:
+          break;
+      }
+      Fl::unlock();
+      Fl::awake();
+
+      if(PSC_g_startGetAllParameters){
+        if((int)PSC_g_inputCMD.param != expectedParamNum){
+          //ask for it again
+          PSC_SendCommand(cmd);
+        }else if(getOPLO ){  //oplo is open loop ffset and there is one for each leg so we must ask this for param 4 times
+          if(oploNum > 4){
+            getOPLO = false;
             expectedParamNum +=1;
             cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
-            PSC_SendCommand(cmd);    
-          }          
-        }
-        PSC_g_newCmdFromBoard = false;
-      } 
-    }
-    return NULL;
+            PSC_SendCommand(cmd);
+          }           
+          cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
+          cmd.numVals = 1;
+          cmd.vals[0] = oploNum;
+          oploNum++;
+          PSC_SendCommand(cmd);
+          
+          
+        }else if(expectedParamNum == (int)OPLO){
+          getOPLO = true;
+          cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
+          cmd.numVals = 1;
+          cmd.vals[0] = oploNum;
+          oploNum++;
+          PSC_SendCommand(cmd);
+          
+        }else if(expectedParamNum+1> (int)OPLO){
+          expectedParamNum = 0;
+          PSC_g_startGetAllParameters = 0;
+          control_Group->activate();
+        }else{
+          expectedParamNum +=1;
+          cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
+          PSC_SendCommand(cmd);    
+        }          
+      }
+      PSC_g_newCmdFromBoard = false;
+    } 
+  }
+  return NULL;
 }
 
 void* updateDataDisplayThread(void*) {
