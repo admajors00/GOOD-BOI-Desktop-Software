@@ -190,7 +190,9 @@ void * PSC_InterpretCommandThread(void *threadID) {
         // PSC_SendToOutputBuffer( response, messageLen);
         getOrSet = 1;
       }
-      
+      for(int i =0; i < cmd.numVals; i++){
+        cmd.vals[i] = round(cmd.vals[i], 2);
+      }
       Fl::lock();
       switch(PSC_g_inputCMD.param){
         case SPEED:
