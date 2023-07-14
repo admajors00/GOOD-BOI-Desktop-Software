@@ -4,6 +4,7 @@
 #include <wiringPi.h>
 #include <wiringSerial.h>
 #include <pthread.h>
+#include <cmath>
 #include <string>
 #include <chrono>
 #include "SerialComs.h"
@@ -44,10 +45,12 @@ void stop_Button_CB(Fl_Widget*, void*) {
   status_TextDisplay->buffer(buff1);
     
     buff1->text("Stopped");
-    
-    CHECK_FOR_SERIAL_MESSAGES = false;
-    UPDATE_DATA_DISPLAY = false;
-    UPDATE_SERIAL_MSG_WINDOW = false;
+    //expectedParamNum = 0;
+          PSC_g_startGetAllParameters = 0;
+          control_Group->activate();
+    // CHECK_FOR_SERIAL_MESSAGES = false;
+    // UPDATE_DATA_DISPLAY = false;
+    // UPDATE_SERIAL_MSG_WINDOW = false;
     clearBuffer();
 }
 
@@ -191,7 +194,7 @@ void * PSC_InterpretCommandThread(void *threadID) {
         getOrSet = 1;
       }
       for(int i =0; i < cmd.numVals; i++){
-        cmd.vals[i] = round(cmd.vals[i], 2);
+        cmd.vals[i] = std::ceil(cmd.vals[i]*100)/100;
       }
       Fl::lock();
       switch(PSC_g_inputCMD.param){
@@ -251,9 +254,10 @@ void * PSC_InterpretCommandThread(void *threadID) {
           //ask for it again
           PSC_SendCommand(cmd);
         }else if(getOPLO ){  //oplo is open loop ffset and there is one for each leg so we must ask this for param 4 times
-          if(oploNum > 4){
+          if(oploNum >=4){
             getOPLO = false;
             expectedParamNum +=1;
+            oploNum = 0;
             cmd.param = static_cast<PARAM_ENUM>(expectedParamNum);
             PSC_SendCommand(cmd);
           }           
@@ -272,8 +276,9 @@ void * PSC_InterpretCommandThread(void *threadID) {
           oploNum++;
           PSC_SendCommand(cmd);
           
-        }else if(expectedParamNum+1> (int)OPLO){
+        }else if(expectedParamNum>(int)OPLO){
           expectedParamNum = 0;
+          oploNum = 0;
           PSC_g_startGetAllParameters = 0;
           control_Group->activate();
         }else{
