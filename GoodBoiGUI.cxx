@@ -4,9 +4,9 @@
 #include <wiringPi.h>
 #include <wiringSerial.h>
 #include <pthread.h>
-#include <cmath>
 #include <string>
 #include <chrono>
+#include <math>
 #include "SerialComs.h"
 static Fl_Text_Buffer *buff1 = new Fl_Text_Buffer(); 
 static Fl_Text_Buffer *buff2 = new Fl_Text_Buffer(); 
@@ -177,7 +177,9 @@ void* updateSerialMsgWindowThread(void*) {
 void * PSC_InterpretCommandThread(void *threadID) {
   int getOrSet = 0; // 0 for get 1 for set;
   int messageLen = 0;
-  char response[20];
+  char dataAsString1[20];
+  char dataAsString2[20];
+  char dataAsString3[20];
   int expectedParamNum=0;
   bool getOPLO = 0;
   int oploNum = 0;
@@ -192,42 +194,43 @@ void * PSC_InterpretCommandThread(void *threadID) {
         //messageLen = sprintf(response, "<%s set>",PARAM_STRING[cmd.param]);
         // PSC_SendToOutputBuffer( response, messageLen);
         getOrSet = 1;
-      }
-      for(int i =0; i < cmd.numVals; i++){
-        cmd.vals[i] = std::ceil(cmd.vals[i]*100)/100;
+        std::sprinf(dataAsString1, "%0.2f", PSC_g_inputCMD.vals[0])
       }
       Fl::lock();
       switch(PSC_g_inputCMD.param){
         case SPEED:
-          if(getOrSet){walkSpeed_Valuator->input.value(std::to_string( (int)PSC_g_inputCMD.vals[0]).data());}
+
+          if(getOrSet){walkSpeed_Valuator->input.value(dataAsString1);}
           break;
         case DIST:
-          if(getOrSet){stepDist_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
+          if(getOrSet){stepDist_Valuator->input.value(dataAsString1);}
           break;
         case HEIGHT:
-          if(getOrSet){walkHeight_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
+          if(getOrSet){walkHeight_Valuator->input.value(dataAsString1);}
           break;
         case DIR:
-          if(getOrSet){walkDir_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[0]).data());}
+          if(getOrSet){walkDir_Valuator->input.value(dataAsString1);}
           break;
         case OPLO:
           if(getOrSet){
+            std::sprinf(dataAsString2, "%0.2f", PSC_g_inputCMD.vals[1])
+            std::sprinf(dataAsString3, "%0.2f", PSC_g_inputCMD.vals[2])
             switch((int)PSC_g_inputCMD.vals[0]){
               case 0:
-                openLoopOffset1X_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[1]).data());
-                openLoopOffset1Y_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[2]).data());
+                openLoopOffset1X_Valuator->input.value(dataAsString2);
+                openLoopOffset1Y_Valuator->input.value(dataAsString3);
                 break;
               case 1:
-                openLoopOffset2X_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[1]).data());
-                openLoopOffset2Y_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[2]).data());
+                openLoopOffset2X_Valuator->input.value(dataAsString2);
+                openLoopOffset2Y_Valuator->input.value(dataAsString3);
                 break;
               case 2:
-                openLoopOffset3X_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[1]).data());
-                openLoopOffset3Y_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[2]).data());
+                openLoopOffset3X_Valuator->input.value(dataAsString2);
+                openLoopOffset3Y_Valuator->input.value(dataAsString3);
                 break;
               case 3:
-                openLoopOffset4X_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[1]).data());
-                openLoopOffset4Y_Valuator->input.value(std::to_string( PSC_g_inputCMD.vals[2]).data());
+                openLoopOffset4X_Valuator->input.value(dataAsString2);
+                openLoopOffset4Y_Valuator->input.value(dataAsString3);
                 break;
               default:
                 break;
