@@ -6,7 +6,7 @@
 #include <pthread.h>
 #include <string>
 #include <chrono>
-#include <math>
+
 #include "SerialComs.h"
 static Fl_Text_Buffer *buff1 = new Fl_Text_Buffer(); 
 static Fl_Text_Buffer *buff2 = new Fl_Text_Buffer(); 
@@ -194,7 +194,7 @@ void * PSC_InterpretCommandThread(void *threadID) {
         //messageLen = sprintf(response, "<%s set>",PARAM_STRING[cmd.param]);
         // PSC_SendToOutputBuffer( response, messageLen);
         getOrSet = 1;
-        std::sprinf(dataAsString1, "%0.2f", PSC_g_inputCMD.vals[0])
+        std::sprintf(dataAsString1, "%0.2f", PSC_g_inputCMD.vals[0]);
       }
       Fl::lock();
       switch(PSC_g_inputCMD.param){
@@ -213,8 +213,8 @@ void * PSC_InterpretCommandThread(void *threadID) {
           break;
         case OPLO:
           if(getOrSet){
-            std::sprinf(dataAsString2, "%0.2f", PSC_g_inputCMD.vals[1])
-            std::sprinf(dataAsString3, "%0.2f", PSC_g_inputCMD.vals[2])
+            std::sprintf(dataAsString2, "%0.2f", PSC_g_inputCMD.vals[1]);
+            std::sprintf(dataAsString3, "%0.2f", PSC_g_inputCMD.vals[2]);
             switch((int)PSC_g_inputCMD.vals[0]){
               case 0:
                 openLoopOffset1X_Valuator->input.value(dataAsString2);
